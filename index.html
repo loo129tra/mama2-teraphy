@@ -1,0 +1,260 @@
+aww, [06.04.2025 12:19]
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Чат с ботом</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: #111;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+
+    .start-btn, .back-btn, .contact-btn {
+      padding: 10px 20px;
+      font-size: 18px;
+      background-color: gold;
+      border: none;
+      border-radius: 10px;
+      color: black;
+      cursor: pointer;
+      transition: 0.3s ease;
+    }
+
+    .start-btn:hover, .contact-btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 20px orange;
+    }
+
+    .back-btn {
+      background-color: red;
+    }
+
+    #chatContainer, #contactsContainer {
+      width: 90%;
+      max-width: 600px;
+      height: 500px;
+      margin-top: 20px;
+      display: none;
+      flex-direction: column;
+      padding: 15px;
+      border-radius: 10px;
+      overflow-y: auto;
+    }
+
+    #contactsContainer {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .contact {
+      margin: 10px 0;
+      background-color: gold;
+      padding: 15px;
+      border-radius: 10px;
+      cursor: pointer;
+      width: 80%;
+      text-align: center;
+    }
+
+    .message {
+      max-width: 70%;
+      padding: 10px 15px;
+      border-radius: 15px;
+      margin: 5px 0;
+      line-height: 1.4;
+      word-wrap: break-word;
+      display: inline-block;
+      clear: both;
+      opacity: 0;
+      transform: translateY(10px);
+      animation: fadeIn 0.4s forwards;
+    }
+
+    .user {
+      background-color: #dcf8c6;
+      color: #000;
+      float: right;
+      border-bottom-right-radius: 0;
+    }
+
+    .bot {
+      background-color: #ffffff;
+      color: #000;
+      float: left;
+      border-bottom-left-radius: 0;
+    }
+
+    @keyframes fadeIn {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .typing {
+      font-style: italic;
+      opacity: 0.6;
+      margin-top: 5px;
+      animation: fadeIn 0.3s forwards;
+    }
+  </style>
+</head>
+<body>
+
+  <button class="start-btn" id="startChat">Начать переписку</button>
+
+  <div id="contactsContainer">
+    <button class="back-btn" id="backBtn">Назад</button>
+    <button class="contact-btn" id="vanjaBtn">Ваня</button>
+    <button class="contact-btn" id="ritaBtn">Рита</button>
+    <button class="contact-btn" id="nikitaBtn">Никита</button>
+    <button class="contact-btn" id="swagaBtn">Свага здесь</button>
+    <button class="contact-btn" id="narkobabkaBtn">Нарко бабка</button>
+  </div>
+
+  <div id="chatContainer">
+    <button class="back-btn" id="backToContacts">Назад к контактам</button>
+    <div id="chatMessages"></div>
+    <div id="inputContainer">
+      <input type="text" id="userInput" placeholder="Напиши что-нибудь...">
+      <button id="sendBtn">Отправить</button>
+    </div>
+  </div>
+
+  <!-- Звуки -->
+  <audio id="sendSound" src="https://cdn.jsdelivr.net/gh/joshuajansen/chat-sound@main/sounds/iphone_send.mp3"></audio>
+  <audio id="receiveSound" src="https://cdn.jsdelivr.net/gh/joshuajansen/chat-sound@main/sounds/iphone_receive.mp3"></audio>
+
+  <script>
+    const startBtn = document.getElementById('startChat');
+    const backBtn = document.getElementById('backBtn');
+    const backToContactsBtn = document.getElementById('backToContacts');
+    const chatContainer = document.getElementById('chatContainer');
+    const contactsContainer = document.getElementById('contactsContainer');
+    const chatMessages = document.getElementById('chatMessages');
+    const sendBtn = document.getElementById('sendBtn');
+    const userInput = document.getElementById('userInput');
+    const sendSound = document.getElementById('sendSound');
+    const receiveSound = document.getElementById('receiveSound');
+
+    const botReplies = {
+      "Ваня": [
+        'ваня пошли в мм2 ыыы, стрелялки ыы, клянись',
+        'погнали стреляться, ваня, чё ты как не родной',
+        'мм2 зовёт, клянись что идёшь'
+      ],
+      "Рита": [
+        'привет, как дела? мне скучно',
+        'пойду готовить, ты как?',
+        'я тебя жду на чате, не пропадай'
+      ],
+      "Никита": [
+        'никита пришёл, гоу в мм2',
+        'какие планы на вечер?',
+        'не могу без игры, ты со мной?'
+      ],
+      "Свага здесь": [
+        'здарова, погнали в игру',
+        'свага тут, что по стрелялкам?',
+        'ты готов к челленджу?'
+      ],
+      "Нарко бабка": [
+        'молодёжь, идём к бабушке',
+        'быстрее, лови квест!',
+        'тренируйся, как я, а то не будет побед'
+      ]
+    };
+
+    const contactBtns = {
+      "Ваня": document.getElementById('vanjaBtn'),
+      "Рита": document.getElementById('ritaBtn'),
+      "Никита": document.getElementById('nikitaBtn'),
+      "Свага здесь": document.getElementById('swagaBtn'),
+      "Нарко бабка": document.getElementById('narkobabkaBtn')
+    };
+
+    const chatBackgrounds = {
+      "Ваня": 'linear-gradient(45deg, gold, orange, red)',
+      "Рита": 'linear-gradient(45deg, pink, yellow, purple)',
+      "Никита": 'linear-gradient(45deg, green, blue, cyan)',
+      "Свага здесь": 'linear-gradient(45deg, lime, turquoise, pink)',
+      "Нарко бабка": 'linear-gradient(45deg, violet, indigo, blue)'
+    };
+
+    startBtn.addEventListener('click', () => {
+      startBtn.style.display = 'none';
+      contactsContainer.style.display = 'block';
+    });
+
+    backToContactsBtn.addEventListener('click', () => {
+      chatContainer.style.display = 'none';
+      contactsContainer.style.display = 'block';
+    });
+
+    backBtn.addEventListener('click', () => {
+      contactsContainer.style.display = 'block';
+      chatContainer.style.display = 'none';
+    });
+
+    Object.keys(contactBtns).forEach(contact => {
+      contactBtns[contact].addEventListener('click', () => {
+        contactsContainer.style.display = 'none';
+        chatContainer.style.display = 'flex';
+        chatContainer.style.background = chatBackgrounds[contact];
+        startChat(contact);
+      });
+    });
+
+    function startChat(contact) {
+      chatMessages.innerHTML = '';
+      addMessage('Печатает...', 'bot');
+      setTimeout(() => {
+        const reply = botReplies[contact][Math.floor(Math.random() * botReplies[contact].length)];
+        addMessage(reply, 'bot');
+      }, 1000);
+
+      sendBtn.onclick = () => sendMessage(contact);
+      userInput.addEventListener('keypress', e => {
+        if (e.key === 'Enter') sendMessage(contact);
+      });
+    }
+
+    function sendMessage(contact) {
+      const text = userInput.value.trim();
+      if (text === '') return;
+
+      addMessage(text, 'user');
+      userInput.value = '';
+      sendSound.play();
+
+      setTimeout(() => {
+        addMessage('Печатает...', 'bot');
+        setTimeout(() => {
+          const reply = botReplies[contact][Math.floor(Math.random() * botReplies[contact].length)];
+          addMessage(reply, 'bot');
+          receiveSound.play();
+        }, 1000);
+      }, 700);
+    }
+
+    function addMessage(text, type) {
+      const div = document.createElement('div');
+      div.className = 'message ' + type;
+      div.textContent = text;
+      chatMessages.appendChild(div);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+  </script>
+
+</body>
+</html>
